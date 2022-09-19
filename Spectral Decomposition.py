@@ -163,100 +163,29 @@ if __name__ == "__main__":
         plt.imshow(clustered_adj_mat_fb, cmap="viridis", interpolation="none")
         return clustered_adj_mat_fb
 
-    def louvain_one_iter(nodes_connectivity_list_fb):
-
-        adj_mat = np.zeros([
-            nodes_connectivity_list_fb.max() + 1,
-            nodes_connectivity_list_fb.max() + 1
-        ])
-        mod_mat = np.zeros_like(adj_mat)
-        D_mat = np.zeros_like(adj_mat)
-        for i in range(len(nodes_connectivity_list_fb)):
-            adj_mat[nodes_connectivity_list_fb[i, 0],
-                    nodes_connectivity_list_fb[i, 1]] = 1
-            adj_mat[nodes_connectivity_list_fb[i, 1],
-                    nodes_connectivity_list_fb[i, 0]] = 1
-
-        D_array = np.array(np.sum(adj_mat, axis=0))
-        for i in range(len(D_array)):
-            for j in range(len(D_array)):
-                mod_mat[i, j] = adj_mat[i, j] - D_array[i] * D_array[j] / (
-                    2 * len(nodes_connectivity_list_fb))
-
-        nodes = sorted(list(set(nodes_connectivity_list_fb.ravel().tolist())))
-        dict_clust = dict()
-        for A, B in zip(nodes, nodes):
-            dict_clust[A] = B
-        del_Q = np.zeros([len(nodes), len(nodes)])
-        Q_val_init = np.trace(mod_mat) / (2 * len(nodes_connectivity_list_fb))
-        DICT_association = {k: [] for k in nodes}
-
-        for i in nodes_connectivity_list_fb:
-            DICT_association[i[1]].append(i[0])
-            DICT_association[i[0]].append(i[1])
-
-        unique_ids = sorted(list(set(list(dict_clust.values()))))
-        Q_max = Q_val_init
-        ###FOR 1st Iteration, we can simply traverse the nodelist provided and find the pair for which we obtain the highest modularity
-        for i in range(len(nodes_connectivity_list_fb)):
-            node = nodes_connectivity_list_fb[i, :].ravel().tolist()
-            mod_mat_pair = mod_mat[node, :][:, node]
-            Q_val_pair = np.sum(mod_mat_pair) / (2 * len(nodes_connectivity_list_fb))
-
-            # node_rem = list(set(nodes) - set(node))
-            # mod_mat_rem = mod_mat[node_rem, :][:, node_rem]
-            # Q_val_rem = np.trace(mod_mat_rem) / (
-            #     2 * len(nodes_connectivity_list_fb))
-
-            Q_obtained =  Q_val_pair #+ Q_val_rem
-            if Q_obtained > Q_max:
-                Q_max = Q_obtained
-                best_pair = nodes_connectivity_list_fb[i, :]
-
-
-        p = min(best_pair)
-        q = max(best_pair)
-        print(p, q)
-        node_rem = list(set(nodes) - set(best_pair))
-        mod_mat_rem = mod_mat[node_rem, :][:, node_rem]
-        Q_val_rem = np.trace(mod_mat_rem) / (2 * len(nodes_connectivity_list_fb))
-        print(Q_max + Q_val_rem)
-        dict_clust[q] = p
-        graph_partition_louvian_fb = np.array(list(dict_clust.items()))
-        return graph_partition_louvian_fb
-
-    ############ Answer qn 1-4 for facebook data #################################################
-    # Import facebook_combined.txt
-    # nodes_connectivity_list is a nx2 numpy array, where every row
-    # is a edge connecting i<->j (entry in the first column is node i,
-    # entry in the second column is node j)
-    # Each row represents a unique edge. Hence, any repetitions in data must be cleaned away.
+   
+    
     nodes_connectivity_list_fb = import_facebook_data(
         "../data/facebook_combined.txt")
 
-    # This is for question no. 1
+    
     # fielder_vec    : n-length numpy array. (n being number of nodes in the network)
     # adj_mat        : nxn adjacency matrix of the graph
     # graph_partition: graph_partition is a nx2 numpy array where the first column consists of all
     #                  nodes in the network and the second column lists their community id (starting from 0)
-    #                  Follow the convention that the community id is equal to the lowest nodeID in that community.
+    #                  The convention is that the community id is equal to the lowest nodeID in that community.
     fielder_vec_fb, adj_mat_fb, graph_partition_fb = spectralDecomp_OneIter(
         nodes_connectivity_list_fb)
 
-    # This is for question no. 2. Use the function
-    # written for question no.1 iteratively within this function.
-    # graph_partition is a nx2 numpy array, as before. It now contains all the community id's that you have
-    # identified as part of question 2. The naming convention for the community id is as before.
+  
+    # graph_partition is a nx2 numpy array, as before. It now contains all the community id's that you have.
+    # The naming convention for the community id is as before.
     graph_partition_fb = spectralDecomposition(nodes_connectivity_list_fb)
 
-    # This is for question no. 3
+
     # Create the sorted adjacency matrix of the entire graph. You will need the identified communities from
-    # question 3 (in the form of the nx2 numpy array graph_partition) and the nodes_connectivity_list. The
+    # (in the form of the nx2 numpy array graph_partition) and the nodes_connectivity_list. The
     # adjacency matrix is to be sorted in an increasing order of communities.
     clustered_adj_mat_fb = createSortedAdjMat(graph_partition_fb,
                                               nodes_connectivity_list_fb)
 
-    # This is for question no. 4
-    # run one iteration of louvain algorithm and return the resulting graph_partition. The description of
-    # graph_partition vector is as before.
-    graph_partition_louvain_fb = louvain_one_iter(nodes_connectivity_list_fb)
